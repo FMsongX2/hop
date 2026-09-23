@@ -110,7 +110,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEQzRjRBQzNBNzI5NDVCN0YKUldSL1c1UnlPcXowMHkxMGU5d05QRmk3dU1EbS9CS0wxaW14YWhZTkdjQTNyMGo5NlppL1ErSS8K",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDI2QTE2NDc0MjUxMUM5Q0EKUldUS3lSRWxkR1NoSnVxd1JSVVB2UUF0VERvcFpkTlh5K3lFSEVGOWVhUTBldjVLcmFMQnR3ZkQK",
       "endpoints": [
         "https://github.com/FMsongX2/hop/releases/latest/download/latest.json"
       ],
