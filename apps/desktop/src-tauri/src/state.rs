@@ -1010,26 +1010,28 @@ mod tests {
     }
 
     #[test]
-    fn commit_staged_hwp_save_rejects_hwpx_target_before_reading_staged_bytes() {
+    fn commit_staged_hwp_save_accepts_hwpx_target_and_validates_staged_bytes() {
         let mut manager = DocumentSessionManager::default();
         let opened = manager.create_document().unwrap();
         let dir = tempfile::tempdir().unwrap();
         let staged_path = dir.path().join("save.tmp");
         let target_path = dir.path().join("saved.hwpx");
 
-        std::fs::write(&staged_path, b"not a hwp document").unwrap();
+        std::fs::write(&staged_path, b"not a hwpx document").unwrap();
 
         let error = manager
             .commit_staged_hwp_save(
                 &opened.doc_id,
                 staged_path.clone(),
-                target_path,
+                target_path.clone(),
                 Some(opened.revision),
                 false,
             )
             .unwrap_err();
 
-        assert!(error.contains("HWPX 경로에는 HWP 바이트를 저장할 수 없습니다"));
+        // HWPX 경로는 허용하되, 파싱되지 않는 staging 바이트는 원본을 건드리기 전에 거부한다.
+        assert!(error.contains("저장 바이트 검증 실패"), "{error}");
+        assert!(!target_path.exists());
         assert!(staged_path.exists());
     }
 
