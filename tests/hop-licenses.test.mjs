@@ -14,6 +14,7 @@ test('HOP license names HOP contributors and points to third-party notices', asy
 });
 
 test('third-party notice tracks the pinned rhwp release and is bundled with the app', async () => {
+  // Windows WiX는 리소스 대상 파일명을 무시하고 원본 이름을 쓴다. 같은 이름의 파일은 서로 다른 디렉터리에 둔다.
   const upstream = JSON.parse(await readFile(join(repoRoot, 'config/rhwp-upstream.json'), 'utf8'));
   const notice = await readFile(join(repoRoot, 'THIRD_PARTY_LICENSES.md'), 'utf8');
   assert.match(notice, new RegExp(`rhwp ${upstream.version.replace(/\\./g, '\\\\.')} \\(${upstream.commit}\\)`));
@@ -24,6 +25,6 @@ test('third-party notice tracks the pinned rhwp release and is bundled with the 
   const resources = tauriConfig.bundle.resources;
   assert.equal(resources['../../../LICENSE'], 'licenses/LICENSE');
   assert.equal(resources['../../../THIRD_PARTY_LICENSES.md'], 'licenses/THIRD_PARTY_LICENSES.md');
-  assert.equal(resources['../../../third_party/rhwp/THIRD_PARTY_LICENSES.md'], 'licenses/rhwp-THIRD_PARTY_LICENSES.md');
-  assert.equal(resources['../../../third_party/rhwp/LICENSE'], 'licenses/rhwp-LICENSE');
+  assert.equal(resources['../../../third_party/rhwp/THIRD_PARTY_LICENSES.md'], 'licenses/rhwp/THIRD_PARTY_LICENSES.md');
+  assert.equal(resources['../../../third_party/rhwp/LICENSE'], 'licenses/rhwp/LICENSE');
 });

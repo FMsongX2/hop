@@ -33,7 +33,7 @@ lines.push('HOP는 MIT 라이선스로 배포된다. 이 문서는 배포본에 
 lines.push('`node scripts/generate-third-party-licenses.mjs`로 생성한다. 의존성이나 rhwp를 갱신하면 다시 생성한다.', '');
 lines.push('## 문서 엔진', '');
 lines.push(`- rhwp ${upstream.version} (${upstream.commit}) — MIT, https://github.com/edwardkim/rhwp`);
-lines.push('- rhwp가 포함하는 서드파티 고지(포팅 알고리즘, 폰트, 크레이트)는 동봉된 `rhwp-THIRD_PARTY_LICENSES.md`를 따른다.', '');
+lines.push('- rhwp가 포함하는 서드파티 고지(포팅 알고리즘, 폰트, 크레이트)는 동봉된 `rhwp/THIRD_PARTY_LICENSES.md`를 따른다.', '');
 lines.push('## 번들 폰트', '', fontTable.trim(), '');
 lines.push('- PDF 내보내기용 `NotoSansKR-Regular.ttf` — SIL OFL 1.1 (rhwp `ttfs/opensource`, 동봉 `NotoSansKR-OFL.txt`)', '');
 lines.push('## 고지 의무가 있는 항목', '');

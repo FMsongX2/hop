@@ -47,8 +47,8 @@
       "../../../third_party/rhwp/ttfs/opensource/NotoSansKR-OFL.txt": "fonts/pdf/NotoSansKR-OFL.txt",
       "../../../LICENSE": "licenses/LICENSE",
       "../../../THIRD_PARTY_LICENSES.md": "licenses/THIRD_PARTY_LICENSES.md",
-      "../../../third_party/rhwp/THIRD_PARTY_LICENSES.md": "licenses/rhwp-THIRD_PARTY_LICENSES.md",
-      "../../../third_party/rhwp/LICENSE": "licenses/rhwp-LICENSE"
+      "../../../third_party/rhwp/LICENSE": "licenses/rhwp/LICENSE",
+      "../../../third_party/rhwp/THIRD_PARTY_LICENSES.md": "licenses/rhwp/THIRD_PARTY_LICENSES.md"
     },
     "fileAssociations": [
       {

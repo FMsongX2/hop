@@ -6,7 +6,7 @@ HOP는 MIT 라이선스로 배포된다. 이 문서는 배포본에 포함되는
 ## 문서 엔진
 
 - rhwp 0.8.6 (f1f9c6ae58344ee9368996d3543f76b9345cf227) — MIT, https://github.com/edwardkim/rhwp
-- rhwp가 포함하는 서드파티 고지(포팅 알고리즘, 폰트, 크레이트)는 동봉된 `rhwp-THIRD_PARTY_LICENSES.md`를 따른다.
+- rhwp가 포함하는 서드파티 고지(포팅 알고리즘, 폰트, 크레이트)는 동봉된 `rhwp/THIRD_PARTY_LICENSES.md`를 따른다.
 
 ## 번들 폰트
 
