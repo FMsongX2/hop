@@ -3,3 +3,11 @@ html[data-hop-toolbar-labels="hidden"] .tb-btn .tb-label,
 html[data-hop-toolbar-labels="hidden"] .sb-ribbon-label {
   display: none;
 }
+
+/* F10 키보드 메뉴 탐색 강조. 마우스 hover와 같은 표시를 쓴다. (ui/menu-keyboard.ts) */
+.md-item.kb-active {
+  background: var(--color-hover-bg);
+}
+.md-sub.kb-open > .md-sub-panel {
+  display: block;
+}

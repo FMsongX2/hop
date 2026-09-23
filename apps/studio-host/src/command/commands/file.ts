@@ -149,6 +149,8 @@ const desktopCommands = new Map<string, CommandDef>([
       if (result) {
         services.eventBus.emit('desktop-document-saved', result);
         emitStatus(services, '저장 완료');
+      } else {
+        emitStatus(services, '저장을 취소했습니다');
       }
     });
   })],
@@ -162,6 +164,8 @@ const desktopCommands = new Map<string, CommandDef>([
       if (result) {
         services.eventBus.emit('desktop-document-saved', result);
         emitStatus(services, '저장 완료');
+      } else {
+        emitStatus(services, '저장을 취소했습니다');
       }
     });
   })],
@@ -215,7 +219,7 @@ const hopOnlyCommands: CommandDef[] = [
       await runDesktopAction(services, 'PDF 내보내기', async () => {
         emitStatus(services, 'PDF 내보내기 중...');
         const jobId = await desktop.exportPdfFromCommand();
-        if (jobId) emitStatus(services, 'PDF 내보내기 완료');
+        emitStatus(services, jobId ? 'PDF 내보내기 완료' : 'PDF 내보내기를 취소했습니다');
       });
     },
   },

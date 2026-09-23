@@ -35,6 +35,7 @@ import { enhanceCustomSelects } from '@/ui/custom-select';
 import { UpdateNotice, type UpdateNoticeActions } from '@/ui/update-notice';
 import { HomeScreen } from '@/ui/home-screen';
 import { installToolbarLabelsSync } from '@/core/toolbar-labels';
+import { installMenuKeyboard } from '@/ui/menu-keyboard';
 import type { DesktopBridgeApi } from '@/core/tauri-bridge';
 import { createCommandRuntime } from './host/command-runtime';
 import { createRendererSession } from './host/renderer-session';
@@ -157,6 +158,7 @@ async function initialize(): Promise<void> {
     installToolbarLabelsSync(window, document);
 
     new MenuBar(document.getElementById('menu-bar')!, eventBus, dispatcher, registry);
+    installMenuKeyboard(document.getElementById('menu-bar')!);
     installNonEditorContextMenuGuards(document);
 
     // 툴바 내 data-cmd 버튼 클릭 → 커맨드 디스패치. 키보드 Enter/Space의 click(detail 0)도 받는다.

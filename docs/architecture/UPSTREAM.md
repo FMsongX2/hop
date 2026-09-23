@@ -74,6 +74,7 @@ print-to-PDF command도 native session을 우회하므로 명시적으로 제외
 * `ui/dialog`, `ui/toolbar`, `ui/custom-select`, `ui/print-dialog`: HOP UI와 native 인쇄 정책
 * `host/renderer-session`: upstream renderer를 Canvas2D 제품 정책으로 조립
 * `core/toolbar-labels`, `command/commands/desktop-view`, `styles/desktop-toolbar.css`: 데스크톱 도구 상자 라벨 표시 정책과 960px 이상 창 폭의 레이아웃 고정
+* `ui/menu-keyboard`: F10 키보드 메뉴 활성화
 * `styles/*`, `style.css`: HOP가 소유하는 스타일 override
 * `main.ts`: upstream이 더 작은 bootstrap hook을 제공하기 전까지 유지하는 앱 bootstrap override
 * `vendor/rhwp-core`, `vite-env.d.ts`: upstream release WASM import 경계를 맞추기 위한 generated WASM package와 타입 선언

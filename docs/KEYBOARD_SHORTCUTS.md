@@ -82,6 +82,13 @@ that use **Alt**, macOS users should use **Option (⌥)**.
 | Alt+Insert | Insert Column Left |
 | Alt+Delete | Delete Column |
 
+## Menu
+
+| Shortcut | Action |
+|---|---|
+| F10 | Activate the menu bar (arrows to navigate, Enter to run, Esc to close) |
+| Alt+F / E / D / J / W | Open 파일 / 편집 / 입력 / 서식 / 쪽 menu (Hangul mnemonics) |
+
 ## View
 
 | Shortcut | Action |

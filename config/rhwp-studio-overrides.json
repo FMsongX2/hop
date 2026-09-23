@@ -167,6 +167,11 @@
       "id": "styles/desktop-toolbar.css",
       "strategy": "contribution",
       "reason": "Keeps the desktop toolbar layout stable above the 960px minimum window width and hides labels on request."
+    },
+    {
+      "id": "ui/menu-keyboard",
+      "strategy": "contribution",
+      "reason": "Adds F10 keyboard activation of the in-page menu bar, matching Hangul."
     }
   ]
 }
