@@ -11,9 +11,12 @@ that use **Alt**, macOS users should use **Option (⌥)**.
 | Alt+N | New Document |
 | Cmd/Ctrl+Shift+N | New Window |
 | Cmd/Ctrl+O | Open |
+| Alt+O | Open (Hangul) |
 | Cmd/Ctrl+S | Save |
+| Alt+S | Save (Hangul) |
 | Cmd/Ctrl+Shift+S | Save As |
 | Cmd/Ctrl+P | Print |
+| Alt+P | Print (Hangul) |
 | F7 | Page Setup |
 | Cmd/Ctrl+Q | Quit HOP |
 
@@ -67,9 +70,9 @@ that use **Alt**, macOS users should use **Option (⌥)**.
 |---|---|
 | Cmd/Ctrl+Shift+L | Align Left |
 | Cmd/Ctrl+Shift+M | Justify |
-| Alt+Shift+H | Align Right |
-| Alt+Shift+C | Align Center |
-| Alt+Shift+D | Distribute |
+| Cmd/Ctrl+Shift+R, Alt+Shift+H | Align Right |
+| Cmd/Ctrl+Shift+C, Alt+Shift+C | Align Center |
+| Cmd/Ctrl+Shift+T, Alt+Shift+D | Distribute |
 
 ## Table
 
@@ -98,12 +101,14 @@ that use **Alt**, macOS users should use **Option (⌥)**.
 
 | Shortcut | Action |
 |---|---|
-| Alt+F10 | Insert Symbols |
+| Cmd/Ctrl+F10, Alt+F10 | Insert Symbols |
 
 ## Notes
 
-Some shortcuts are remapped from the original Hancom 한글 defaults to avoid
-browser/webview conflicts:
+Upstream rhwp remaps some Hancom 한글 defaults to avoid browser conflicts. HOP
+runs in a desktop webview without those conflicts, so it also accepts the
+original Ctrl+Shift+C/R/T alignment keys, Ctrl+F10 for symbols, and Alt+S/O/P
+for save/open/print. The remapped keys still work:
 
 - **Align Right**: Ctrl+Shift+R (browser hard-refresh) → Alt+Shift+H
 - **Align Center**: Ctrl+Shift+C (browser dev tools) → Alt+Shift+C

@@ -8,8 +8,6 @@ import { enhanceCustomSelects } from './custom-select';
 /** 마지막 모달이 닫혀 편집기 포커스를 복원할 수 있음을 알리는 문서 이벤트. upstream과 같은 이름을 쓴다. */
 export const MODAL_DIALOG_CLOSED_EVENT = 'rhwp-modal-dialog-closed';
 
-/** 열려 있는 모달 수. 0이 될 때만 닫힘 이벤트를 보낸다. */
-let openModalCount = 0;
 
 export abstract class ModalDialog {
   protected overlay!: HTMLDivElement;
@@ -18,7 +16,6 @@ export abstract class ModalDialog {
   private width: number;
   private built = false;
   private captureHandler: ((e: KeyboardEvent) => void) | null = null;
-  private countedOpen = false;
 
   constructor(title: string, width: number) {
     this.title = title;
@@ -86,10 +83,6 @@ export abstract class ModalDialog {
   show(): void {
     this.build();
     document.body.appendChild(this.overlay);
-    if (!this.countedOpen) {
-      this.countedOpen = true;
-      openModalCount += 1;
-    }
     enhanceCustomSelects(this.dialog);
 
     // document capture 단계에서 키 이벤트를 가로채 편집 영역 도달 차단
@@ -132,10 +125,8 @@ export abstract class ModalDialog {
     }
     this.overlay?.remove();
     // 중첩 모달에서는 부모가 여전히 키보드를 소유한다. 마지막 모달이 닫힌 경우에만 편집기 포커스 복원을 맡긴다.
-    if (this.countedOpen) {
-      this.countedOpen = false;
-      openModalCount -= 1;
-      if (openModalCount === 0) document.dispatchEvent?.(new Event(MODAL_DIALOG_CLOSED_EVENT));
+    if (typeof document.querySelector === 'function' && !document.querySelector('.modal-overlay')) {
+      document.dispatchEvent?.(new Event(MODAL_DIALOG_CLOSED_EVENT));
     }
   }
 

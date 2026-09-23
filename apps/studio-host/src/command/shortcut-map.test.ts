@@ -49,6 +49,26 @@ describe('shortcut-map', () => {
     expect(matchShortcut(keyEvent({ key: 'f6' }), defaultShortcuts)).toBe('format:style-dialog');
   });
 
+  it('maps Hangul file shortcuts and macOS Option letters by physical key', () => {
+    installNavigator({ platform: 'MacIntel', userAgent: 'Mac OS X' });
+
+    expect(matchShortcut(keyEvent({ key: 'ß', code: 'KeyS', altKey: true }), defaultShortcuts)).toBe('file:save');
+    expect(matchShortcut(keyEvent({ key: 'ø', code: 'KeyO', altKey: true }), defaultShortcuts)).toBe('file:open');
+    expect(matchShortcut(keyEvent({ key: 'π', code: 'KeyP', altKey: true }), defaultShortcuts)).toBe('file:print');
+    expect(matchShortcut(keyEvent({ key: '¬', code: 'KeyL', altKey: true }), defaultShortcuts)).toBe('format:char-shape');
+    expect(matchShortcut(keyEvent({ key: '†', code: 'KeyT', altKey: true }), defaultShortcuts)).toBe('format:para-shape');
+  });
+
+  it('restores Hangul alignment and symbol shortcuts on the desktop', () => {
+    installNavigator({ platform: 'Win32', userAgent: 'Windows NT 10.0' });
+
+    expect(matchShortcut(keyEvent({ key: 'C', code: 'KeyC', ctrlKey: true, shiftKey: true }), defaultShortcuts)).toBe('format:align-center');
+    expect(matchShortcut(keyEvent({ key: 'R', code: 'KeyR', ctrlKey: true, shiftKey: true }), defaultShortcuts)).toBe('format:align-right');
+    expect(matchShortcut(keyEvent({ key: 'T', code: 'KeyT', ctrlKey: true, shiftKey: true }), defaultShortcuts)).toBe('format:align-distribute');
+    expect(matchShortcut(keyEvent({ key: 'F10', ctrlKey: true }), defaultShortcuts)).toBe('insert:symbols');
+    expect(matchShortcut(keyEvent({ key: 'F10', altKey: true }), defaultShortcuts)).toBe('insert:symbols');
+  });
+
   it('does not run unmodified shortcuts while a non-primary system modifier is held', () => {
     installNavigator({ platform: 'Win32', userAgent: 'Windows NT 10.0' });
 

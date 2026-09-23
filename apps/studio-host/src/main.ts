@@ -288,11 +288,23 @@ function updateNoticeActions(bridge: unknown): UpdateNoticeActions {
   };
 }
 
-/** 마지막 모달 종료 뒤 활성 편집기의 키보드 진입점을 textarea로 되돌린다. */
+/**
+ * 마지막 모달 종료 뒤 활성 편집기의 키보드 진입점을 textarea로 되돌린다.
+ * ModalDialog를 거치지 않는 upstream 대화상자(문단 모양 등)도 있으므로 overlay DOM 제거도 함께 감시한다.
+ * 한글처럼 대화상자를 닫자마자 타이핑과 단축키가 이어져야 한다.
+ */
 function setupModalFocusRestore(): void {
-  document.addEventListener(MODAL_DIALOG_CLOSED_EVENT, () => {
-    if (inputHandler?.isActive()) inputHandler.focus();
-  });
+  const restore = () => {
+    if (inputHandler?.isActive() && !document.querySelector('.modal-overlay')) inputHandler.focus();
+  };
+  document.addEventListener(MODAL_DIALOG_CLOSED_EVENT, restore);
+  new MutationObserver((mutations) => {
+    const removedOverlay = mutations.some((mutation) =>
+      Array.from(mutation.removedNodes).some(
+        (node) => node instanceof HTMLElement && node.classList.contains('modal-overlay'),
+      ));
+    if (removedOverlay) restore();
+  }).observe(document.body, { childList: true });
 }
 
 /**
