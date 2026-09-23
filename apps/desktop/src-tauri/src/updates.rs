@@ -1,4 +1,5 @@
 use serde::Serialize;
+use std::ffi::OsString;
 use tauri::{AppHandle, Emitter, Manager};
 
 #[cfg(not(debug_assertions))]
@@ -7,6 +8,8 @@ use tauri_plugin_updater::{Update, UpdaterExt};
 use crate::state::AppState;
 
 const UPDATE_STATE_EVENT: &str = "hop-update-state";
+const SKIP_UPDATE_CHECK_ENV: &str = "HOP_SKIP_UPDATE_CHECK";
+const SKIP_UPDATE_CHECK_FLAG: &str = "--no-update-check";
 
 #[allow(dead_code)]
 #[derive(Debug, Clone, Serialize, PartialEq, Eq, Default)]
@@ -118,6 +121,13 @@ pub fn install_startup_update_check(app: &AppHandle) {
 
     #[cfg(not(debug_assertions))]
     {
+        if startup_update_check_disabled(
+            std::env::args_os(),
+            std::env::var_os(SKIP_UPDATE_CHECK_ENV),
+        ) {
+            eprintln!("[updater] startup update check disabled by {SKIP_UPDATE_CHECK_ENV} or {SKIP_UPDATE_CHECK_FLAG}");
+            return;
+        }
         let app = app.clone();
         tauri::async_runtime::spawn(async move {
             if let Err(error) = discover_update(app).await {
@@ -125,6 +135,18 @@ pub fn install_startup_update_check(app: &AppHandle) {
             }
         });
     }
+}
+
+/// 시작 시 업데이트 확인을 건너뛸지 판정한다. env가 `0`이 아닌 값이거나 `--no-update-check` 인자가 있으면 건너뛴다. (#68)
+#[cfg_attr(debug_assertions, allow(dead_code))]
+fn startup_update_check_disabled<I: IntoIterator<Item = OsString>>(
+    args: I,
+    env_value: Option<OsString>,
+) -> bool {
+    if env_value.is_some_and(|value| !value.is_empty() && value != "0") {
+        return true;
+    }
+    args.into_iter().any(|arg| arg == SKIP_UPDATE_CHECK_FLAG)
 }
 
 #[cfg(not(debug_assertions))]
@@ -313,4 +335,26 @@ fn format_retryable_error(fallback: &str, error: &tauri_plugin_updater::Error) -
         return fallback.to_string();
     }
     format!("{fallback}\n{detail}")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn args(values: &[&str]) -> Vec<OsString> {
+        values.iter().map(OsString::from).collect()
+    }
+
+    #[test]
+    fn update_check_runs_by_default() {
+        assert!(!startup_update_check_disabled(args(&["hop", "doc.hwp"]), None));
+        assert!(!startup_update_check_disabled(args(&["hop"]), Some(OsString::from("0"))));
+        assert!(!startup_update_check_disabled(args(&["hop"]), Some(OsString::from(""))));
+    }
+
+    #[test]
+    fn update_check_is_skipped_by_env_or_flag() {
+        assert!(startup_update_check_disabled(args(&["hop"]), Some(OsString::from("1"))));
+        assert!(startup_update_check_disabled(args(&["hop", "--no-update-check", "doc.hwp"]), None));
+    }
 }

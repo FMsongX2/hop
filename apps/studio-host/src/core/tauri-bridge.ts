@@ -1,9 +1,26 @@
 import { WasmBridge } from '@/upstream/core';
 import type { DocumentInfo } from '@/upstream/core';
+import { showHwpPasswordDialog } from '@/upstream/ui';
 import { remove, stat } from '@tauri-apps/plugin-fs';
 import { finiteFileSize, readFileInChunks, writeFileInChunks } from './chunked-fs';
 
 type DocumentFormat = 'hwp' | 'hwpx';
+
+const PASSWORD_REQUIRED_MESSAGE = '비밀번호가 필요한 암호 문서';
+const PASSWORD_REJECTED_MESSAGE = '비밀번호가 일치하지 않거나 암호화 데이터가 손상되었습니다';
+const PASSWORD_RETRY_MESSAGE = '암호가 일치하지 않거나 문서가 손상되었습니다. 다시 입력하세요.';
+
+/** 암호 문서 열기 오류를 입력값이 섞이지 않은 일반 안내로 바꾼다. (#98) */
+function passwordOpenFailure(error: unknown): Error {
+  const message = String(error);
+  if (message.includes('지원하지 않는 암호화 방식')) {
+    return new Error('지원하지 않는 암호화 방식의 문서입니다. 지원되는 HWP3/HWP5 암호 문서만 열 수 있습니다.');
+  }
+  if (message.includes('DRM')) {
+    return new Error('DRM으로 보호된 문서는 지원하지 않습니다.');
+  }
+  return new Error('암호화된 문서를 열 수 없습니다. 문서가 손상되었는지 확인하세요.');
+}
 
 interface NativeOpenResult {
   docId: string;
@@ -121,7 +138,11 @@ export class TauriBridge extends WasmBridge implements DesktopBridgeApi {
     });
     const previousDocId = this.docId;
     try {
-      const info = super.loadDocument(bytes, result.fileName);
+      const info = await this.loadDocumentForOpen(bytes, result.fileName);
+      if (!info) {
+        await this.closeNativeDocument(result.docId);
+        return null;
+      }
       this.applyNativeOpenResult(result, this.normalizedSourceFormat(super.getSourceFormat()));
       await this.noteFinderRecentDocument(path);
       await this.recordRecentDocument(path);
@@ -264,6 +285,37 @@ export class TauriBridge extends WasmBridge implements DesktopBridgeApi {
     const canClose = await this.confirmReadyForDocumentReplacement();
     if (canClose) await this.releaseCurrentNativeDocument();
     return canClose;
+  }
+
+  /** 일반 열기를 먼저 시도하고, 암호 문서면 upstream 암호 대화상자로 재시도한다. 취소하면 null. (#98) */
+  private async loadDocumentForOpen(bytes: Uint8Array, fileName: string): Promise<DocumentInfo | null> {
+    try {
+      return super.loadDocument(bytes, fileName);
+    } catch (error) {
+      if (!String(error).includes(PASSWORD_REQUIRED_MESSAGE)) throw error;
+      return this.loadPasswordProtectedDocument(bytes, fileName);
+    }
+  }
+
+  /** 암호가 틀리면 재입력을 안내하고, 지원하지 않는 암호화·DRM은 일반 안내 오류로 던진다. */
+  private async loadPasswordProtectedDocument(
+    bytes: Uint8Array,
+    fileName: string,
+  ): Promise<DocumentInfo | null> {
+    let retryMessage: string | undefined;
+    while (true) {
+      const password = await showHwpPasswordDialog(fileName, retryMessage);
+      if (password === null) return null;
+      try {
+        return super.loadDocumentWithPassword(bytes, password, fileName);
+      } catch (error) {
+        if (String(error).includes(PASSWORD_REJECTED_MESSAGE)) {
+          retryMessage = PASSWORD_RETRY_MESSAGE;
+          continue;
+        }
+        throw passwordOpenFailure(error);
+      }
+    }
   }
 
   private async invoke<T>(command: string, args: Record<string, unknown> = {}): Promise<T> {

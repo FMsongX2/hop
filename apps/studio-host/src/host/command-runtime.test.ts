@@ -46,7 +46,7 @@ describe('createCommandRuntime', () => {
       isEditable: true,
     });
     expect(runtime.services.gotoPage(4)).toBe(true);
-    expect(registeredGroups).toHaveLength(8);
+    expect(registeredGroups).toHaveLength(9);
   });
 
   it('synchronizes form mode with the input handler, DOM, status, and events', () => {

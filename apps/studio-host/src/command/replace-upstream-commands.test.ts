@@ -11,6 +11,7 @@ import {
 } from '@/upstream/commands';
 import { editCommands } from './commands/edit';
 import { fileCommands } from './commands/file';
+import { desktopViewCommands } from './commands/desktop-view';
 import { assertUniqueCommandIds, replaceUpstreamCommands } from './replace-upstream-commands';
 import { defaultShortcuts } from './shortcut-map';
 
@@ -19,6 +20,7 @@ const productionCommandGroups = [
   fileCommands,
   editCommands,
   viewCommands,
+  desktopViewCommands,
   formatCommands,
   insertCommands,
   tableCommands,

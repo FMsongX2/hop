@@ -15,7 +15,18 @@ import {
   TableResizeRenderer,
 } from '@/upstream/editor';
 import { Toolbar } from '@/ui/toolbar';
-import { CommandPalette, ContextMenu, MenuBar } from '@/upstream/ui';
+import {
+  CommandPalette,
+  ContextMenu,
+  MenuBar,
+  closeToolbarSplitMenus,
+  initIconToolbarScroller,
+  initStyleToolbarOverflow,
+  moveToolbarSplitFocus,
+  setToolbarSplitOpen,
+  toolbarSplitItems,
+} from '@/upstream/ui';
+import { MODAL_DIALOG_CLOSED_EVENT } from '@/ui/dialog';
 import { loadWebFonts } from '@/core/font-loader';
 import { loadStoredLocalFonts } from '@/core/local-fonts';
 import { isSupportedDocumentPath } from '@/core/document-files';
@@ -23,6 +34,7 @@ import { confirmSaveBeforeReplacingDocument } from '@/upstream/commands';
 import { enhanceCustomSelects } from '@/ui/custom-select';
 import { UpdateNotice, type UpdateNoticeActions } from '@/ui/update-notice';
 import { HomeScreen } from '@/ui/home-screen';
+import { installToolbarLabelsSync } from '@/core/toolbar-labels';
 import type { DesktopBridgeApi } from '@/core/tauri-bridge';
 import { createCommandRuntime } from './host/command-runtime';
 import { createRendererSession } from './host/renderer-session';
@@ -54,6 +66,7 @@ let inputHandler: InputHandler | null = null;
 let toolbar: Toolbar | null = null;
 let ruler: Ruler | null = null;
 let homeScreen: HomeScreen | null = null;
+let iconToolbarScroller: ReturnType<typeof initIconToolbarScroller> = null;
 
 // 상태 바 요소
 const sbMessage = () => document.getElementById('sb-message')!;
@@ -141,46 +154,90 @@ async function initialize(): Promise<void> {
     );
 
     enhanceCustomSelects(document);
+    installToolbarLabelsSync(window, document);
 
     new MenuBar(document.getElementById('menu-bar')!, eventBus, dispatcher, registry);
     installNonEditorContextMenuGuards(document);
 
-    // 툴바 내 data-cmd 버튼 클릭 → 커맨드 디스패치
+    // 툴바 내 data-cmd 버튼 클릭 → 커맨드 디스패치. 키보드 Enter/Space의 click(detail 0)도 받는다.
     document.querySelectorAll('.tb-btn[data-cmd]').forEach(btn => {
       btn.addEventListener('mousedown', (e) => {
         e.preventDefault();
         const cmd = (btn as HTMLElement).dataset.cmd;
         if (cmd) dispatcher.dispatch(cmd, { anchorEl: btn as HTMLElement });
       });
+      btn.addEventListener('click', (event) => {
+        if ((event as MouseEvent).detail !== 0) return;
+        const cmd = (btn as HTMLElement).dataset.cmd;
+        if (cmd) dispatcher.dispatch(cmd, { anchorEl: btn as HTMLElement });
+      });
     });
 
-    // 스플릿 버튼 드롭다운 메뉴
+    // 스플릿 버튼 드롭다운 메뉴 (upstream 0.8.6 마크업: button + role=menu)
     document.querySelectorAll('.tb-split').forEach(split => {
-      const arrow = split.querySelector('.tb-split-arrow');
+      const arrow = split.querySelector<HTMLButtonElement>('.tb-split-arrow');
+      const menu = split.querySelector<HTMLElement>('.tb-split-menu');
       if (arrow) {
-        arrow.addEventListener('mousedown', (e) => {
+        arrow.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          // 다른 열린 메뉴 닫기
-          document.querySelectorAll('.tb-split.open').forEach(s => {
-            if (s !== split) s.classList.remove('open');
+          closeToolbarSplitMenus(document, split);
+          const open = !split.classList.contains('open');
+          setToolbarSplitOpen(split, open, {
+            focus: open && (e as MouseEvent).detail === 0 ? 'first' : undefined,
           });
-          split.classList.toggle('open');
+        });
+        arrow.addEventListener('keydown', (event) => {
+          if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+          event.preventDefault();
+          closeToolbarSplitMenus(document, split);
+          setToolbarSplitOpen(split, true, {
+            focus: event.key === 'ArrowDown' ? 'first' : 'last',
+          });
         });
       }
       split.querySelectorAll('.tb-split-item[data-cmd]').forEach(item => {
-        item.addEventListener('mousedown', (e) => {
+        item.addEventListener('click', (e) => {
           e.preventDefault();
-          split.classList.remove('open');
+          setToolbarSplitOpen(split, false, { returnFocus: (e as MouseEvent).detail === 0 });
           const cmd = (item as HTMLElement).dataset.cmd;
           if (cmd) dispatcher.dispatch(cmd, { anchorEl: item as HTMLElement });
         });
       });
+      menu?.addEventListener('keydown', (event) => {
+        const target = event.target;
+        if (!(target instanceof Element)) return;
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          event.stopPropagation();
+          setToolbarSplitOpen(split, false, { returnFocus: true });
+        } else if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+          event.preventDefault();
+          moveToolbarSplitFocus(split, target, event.key === 'ArrowDown' ? 1 : -1);
+        } else if (event.key === 'Home' || event.key === 'End') {
+          event.preventDefault();
+          const items = toolbarSplitItems(split);
+          (event.key === 'Home' ? items[0] : items.at(-1))?.focus({ preventScroll: true });
+        }
+      });
     });
     // 외부 클릭 시 스플릿 메뉴 닫기
     document.addEventListener('mousedown', () => {
-      document.querySelectorAll('.tb-split.open').forEach(s => s.classList.remove('open'));
+      closeToolbarSplitMenus(document);
     });
+
+    // 도구 모음/서식 도구 모음 mousedown 시 focus 이동 방지 — 편집 영역 선택이 보존되어야 서식 적용이 동작한다.
+    for (const id of ['icon-toolbar', 'style-bar']) {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('mousedown', (e) => {
+        const tag = (e.target as HTMLElement).tagName;
+        if (tag !== 'INPUT' && tag !== 'SELECT') e.preventDefault();
+      });
+    }
+
+    iconToolbarScroller = initIconToolbarScroller(document.getElementById('icon-toolbar'));
+    initStyleToolbarOverflow(document.getElementById('style-bar'));
+    setupModalFocusRestore();
 
     setupFileInput();
     setupZoomControls();
@@ -229,6 +286,13 @@ function updateNoticeActions(bridge: unknown): UpdateNoticeActions {
       ? () => desktop.restartToApplyUpdate!()
       : undefined,
   };
+}
+
+/** 마지막 모달 종료 뒤 활성 편집기의 키보드 진입점을 textarea로 되돌린다. */
+function setupModalFocusRestore(): void {
+  document.addEventListener(MODAL_DIALOG_CLOSED_EVENT, () => {
+    if (inputHandler?.isActive()) inputHandler.focus();
+  });
 }
 
 /**
@@ -478,39 +542,39 @@ function setupEventListeners(): void {
   const rotateGroup = document.querySelector('.tb-rotate-group') as HTMLElement | null;
   if (rotateGroup) {
     eventBus.on('picture-object-selection-changed', (selected) => {
-      rotateGroup.style.display = (selected as boolean) ? '' : 'none';
+      rotateGroup.hidden = !(selected as boolean);
     });
   }
 
   // 머리말/꼬리말 편집 모드 시 도구상자 전환 + 본문 dimming
   const hfGroup = document.querySelector('.tb-headerfooter-group') as HTMLElement | null;
   const hfLabel = hfGroup?.querySelector('.tb-hf-label') as HTMLElement | null;
-  const defaultTbGroups = document.querySelectorAll('#icon-toolbar > .tb-group:not(.tb-headerfooter-group):not(.tb-rotate-group), #icon-toolbar > .tb-sep');
+  const defaultTbGroups = document.querySelectorAll(
+    '#icon-toolbar .tb-scroll-track > .tb-group:not(.tb-headerfooter-group):not(.tb-rotate-group), #icon-toolbar .tb-scroll-track > .tb-sep',
+  );
   const scrollContainer = document.getElementById('scroll-container');
-  const styleBar = document.getElementById('style-bar');
 
-  eventBus.on('headerFooterModeChanged', (mode) => {
-    const isActive = (mode as string) !== 'none';
-    // 도구상자 전환
-    if (hfGroup) {
-      hfGroup.style.display = isActive ? '' : 'none';
-    }
+  eventBus.on('headerFooterModeChanged', (payload) => {
+    const mode = headerFooterMode(payload);
+    const isActive = mode !== 'none';
+    iconToolbarScroller?.resetToStart();
+    if (hfGroup) hfGroup.hidden = !isActive;
     if (hfLabel) {
-      hfLabel.textContent = (mode as string) === 'header' ? '머리말' : (mode as string) === 'footer' ? '꼬리말' : '';
+      hfLabel.textContent = mode === 'header' ? '머리말' : mode === 'footer' ? '꼬리말' : '';
     }
     defaultTbGroups.forEach((el) => {
-      (el as HTMLElement).style.display = isActive ? 'none' : '';
+      (el as HTMLElement).hidden = isActive;
     });
     // 서식 도구 모음은 머리말/꼬리말 편집 시에도 유지 (문단/글자 모양 설정 필요)
-    // 본문 dimming
-    if (scrollContainer) {
-      if (isActive) {
-        scrollContainer.classList.add('hf-editing');
-      } else {
-        scrollContainer.classList.remove('hf-editing');
-      }
-    }
+    scrollContainer?.classList.toggle('hf-editing', isActive);
   });
+}
+
+/** upstream 이벤트 payload(문자열 또는 { mode } 객체)에서 머리말/꼬리말 모드만 뽑는다. */
+function headerFooterMode(payload: unknown): string {
+  if (typeof payload === 'string') return payload;
+  const mode = (payload as { mode?: unknown } | null)?.mode;
+  return typeof mode === 'string' ? mode : 'none';
 }
 
 /** 문서 초기화 공통 시퀀스 (loadFile, createNewDocument 양쪽에서 사용) */
@@ -532,6 +596,11 @@ async function initializeDocument(
     void homeScreen?.refresh(true);
     inputHandler?.deactivate();
     await canvasView?.loadDocument();
+    // upstream은 창 폭 1024px 미만을 모바일로 보고 폭 맞춤 줌을 강제한다. HOP 데스크톱 창(최소 960px)은
+    // 창 폭 몇 px 차이로 배율이 뒤집히지 않게 기본 배율로 되돌린다. (#94)
+    if (window.innerWidth < 1024 && window.innerWidth >= 960) {
+      canvasView?.getViewportManager().setZoom(1.0);
+    }
     toolbar?.setEnabled(true);
     toolbar?.initFontDropdown(docInfo.fontsUsed);
     toolbar?.initStyleDropdown();

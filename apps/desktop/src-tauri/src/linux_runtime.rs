@@ -51,6 +51,7 @@ fn apply_linux_runtime_fixes_for_os_release(os_release: Option<&str>) {
     apply_webkit_graphics_fallbacks(os_release);
 
     if !is_appimage_runtime() {
+        apply_host_im_module_hint();
         return;
     }
 
@@ -67,6 +68,17 @@ fn apply_webkit_graphics_fallbacks(os_release: Option<&str>) {
         if env::var_os(name).is_none() {
             env::set_var(name, value);
         }
+    }
+}
+
+/// 네이티브 패키지(DEB/RPM)에서 `GTK_IM_MODULE`이 비어 있으면 세션이 `XMODIFIERS`·`QT_IM_MODULE` 등으로
+/// 선언한 입력기를 GTK에도 알린다. 이미 설정된 값(`none` 포함)은 바꾸지 않는다. (#79)
+fn apply_host_im_module_hint() {
+    if env_var_is_nonempty("GTK_IM_MODULE") {
+        return;
+    }
+    if let Some(module) = requested_gtk_im_module() {
+        ensure_gtk_im_module(&module);
     }
 }
 

@@ -64,6 +64,8 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
     let zoom_100 = MenuItemBuilder::with_id("view:zoom-100", "Actual Size").build(app)?;
     let fit_page = MenuItemBuilder::with_id("view:zoom-fit-page", "Fit Page").build(app)?;
     let fit_width = MenuItemBuilder::with_id("view:zoom-fit-width", "Fit Width").build(app)?;
+    let toolbar_labels =
+        MenuItemBuilder::with_id("view:toggle-toolbar-labels", "Toggle Toolbar Labels").build(app)?;
 
     let app_menu = SubmenuBuilder::new(app, "HOP")
         .item(&app_about)
@@ -111,6 +113,8 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
         .separator()
         .item(&fit_page)
         .item(&fit_width)
+        .separator()
+        .item(&toolbar_labels)
         .build()?;
     let window_menu = SubmenuBuilder::new(app, "Window")
         .minimize()

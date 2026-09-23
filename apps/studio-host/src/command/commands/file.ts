@@ -29,6 +29,9 @@ const browserOnlyFileCommands = new Set([
   'file:save-as-hwp',
   'file:save-as-hwpx',
   'file:print-to-pdf',
+  // 0.8.6의 HTML/.doc 내보내기는 브라우저 download 경로라 native 저장 경계를 우회한다.
+  'file:export-html',
+  'file:export-doc',
 ]);
 const adoptedUpstreamCommands = upstreamFileCommands.filter(
   (command) => !browserOnlyFileCommands.has(command.id),

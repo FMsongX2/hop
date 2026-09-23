@@ -220,3 +220,50 @@ fn user_cache_override_is_preserved_while_requested_module_is_normalized() {
     );
     assert_eq!(env::var_os("GTK_IM_MODULE"), Some(OsString::from("fcitx")));
 }
+
+#[test]
+fn host_package_mirrors_session_input_method_when_gtk_module_is_unset() {
+    let _env = env_guard();
+
+    unsafe {
+        env::remove_var("GTK_IM_MODULE");
+        env::remove_var("APPDIR");
+        env::remove_var("APPIMAGE");
+        env::set_var("XMODIFIERS", "@im=ibus");
+    }
+
+    apply_host_im_module_hint();
+
+    assert_eq!(env::var_os("GTK_IM_MODULE"), Some(OsString::from("ibus")));
+}
+
+#[test]
+fn host_package_keeps_explicit_gtk_module() {
+    let _env = env_guard();
+
+    unsafe {
+        env::set_var("GTK_IM_MODULE", "none");
+        env::set_var("XMODIFIERS", "@im=fcitx");
+    }
+
+    apply_host_im_module_hint();
+
+    assert_eq!(env::var_os("GTK_IM_MODULE"), Some(OsString::from("none")));
+}
+
+#[test]
+fn host_package_leaves_gtk_module_unset_without_session_hint() {
+    let _env = env_guard();
+
+    unsafe {
+        env::remove_var("GTK_IM_MODULE");
+        env::remove_var("XMODIFIERS");
+        env::remove_var("QT_IM_MODULE");
+        env::remove_var("SDL_IM_MODULE");
+        env::remove_var("INPUT_METHOD");
+    }
+
+    apply_host_im_module_hint();
+
+    assert_eq!(env::var_os("GTK_IM_MODULE"), None);
+}

@@ -1,0 +1,5 @@
+/* 도구 상자 라벨 숨기기. 루트 속성은 core/toolbar-labels.ts가 관리함. (#97) */
+html[data-hop-toolbar-labels="hidden"] .tb-btn .tb-label,
+html[data-hop-toolbar-labels="hidden"] .sb-ribbon-label {
+  display: none;
+}

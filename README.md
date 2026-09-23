@@ -49,6 +49,8 @@ Windows 빌드는 아직 서명되지 않아 Edge나 Windows SmartScreen에서 "
 
 ### Linux
 
+시작 시 업데이트 확인을 건너뛰려면 `HOP_SKIP_UPDATE_CHECK=1` 환경 변수나 `--no-update-check` 인자를 사용할 수 있습니다.
+
 Linux에서는 한글 IME와 WebKitGTK 런타임 안정성을 위해 배포판에 맞는 네이티브 패키지를 우선 사용해 주세요. arm64 Linux는 Ubuntu/Debian 계열 `.deb`를 먼저 지원합니다. AppImage는 portable 실행이 필요할 때만 권장하며, 일부 Wayland/IME 환경에서는 한영 전환이나 창 표시가 불안정할 수 있습니다.
 
 Arch, CachyOS, EndeavourOS 계열은 AUR의 `hop-openhwp-bin` 패키지로 설치할 수 있습니다. 이 패키지는 [seunghun-kim](https://github.com/seunghun-kim)님이 올려주셨습니다.
