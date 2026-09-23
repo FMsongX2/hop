@@ -200,12 +200,6 @@ impl DocumentSessionManager {
             session.check_external_modification_for_path(&target_path)?;
         }
         let format = DocumentFormat::from_path(&target_path)?;
-        if format == DocumentFormat::Hwpx {
-            return Err(
-                "HWPX 경로에는 HWP 바이트를 저장할 수 없습니다. .hwp 파일로 저장하세요."
-                    .to_string(),
-            );
-        }
         let bytes = std::fs::read(&staged_path).map_err(|e| {
             format!(
                 "staging 파일을 읽을 수 없습니다: {} ({})",
@@ -215,7 +209,7 @@ impl DocumentSessionManager {
         })?;
         let core =
             editable_core_from_bytes(&bytes, "저장 바이트 검증 실패", "저장 문서 변환 실패")?;
-        session.finish_hwp_save(target_path, &bytes, Some(core))?;
+        session.finish_hwp_save(target_path, format, &bytes, Some(core))?;
         let _ = std::fs::remove_file(&staged_path);
         Ok(session.save_result())
     }
@@ -564,9 +558,11 @@ impl DocumentSession {
         Ok(())
     }
 
+    /// 검증된 바이트를 원자적으로 기록하고 세션의 원본 경로·형식·revision을 저장 결과로 바꾼다.
     fn finish_hwp_save(
         &mut self,
         target_path: PathBuf,
+        format: DocumentFormat,
         bytes: &[u8],
         core_override: Option<DocumentCore>,
     ) -> Result<(), String> {
@@ -576,7 +572,7 @@ impl DocumentSession {
             self.core = Some(core);
         }
         self.source_path = Some(target_path);
-        self.source_format = DocumentFormat::Hwp;
+        self.source_format = format;
         self.refresh_source_fingerprint_from_bytes(bytes)?;
         self.revision += 1;
         self.dirty = false;

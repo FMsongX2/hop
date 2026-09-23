@@ -374,15 +374,10 @@ fn ensure_document_open_path(path: &Path) -> Result<(), String> {
     Ok(())
 }
 
+/// 저장 대상은 .hwp 또는 .hwpx여야 한다. 바이트 형식 선택은 WebView(export 호출부)가 확장자에 맞춰 책임진다.
 fn ensure_hwp_target_path(path: &Path) -> Result<(), String> {
     ensure_target_parent(path, "저장 경로")?;
-    let format = DocumentFormat::from_path(path)?;
-    if format == DocumentFormat::Hwpx {
-        return Err(
-            "HWPX 경로에는 HWP 바이트를 저장할 수 없습니다. .hwp 파일로 저장하세요.".to_string(),
-        );
-    }
-    Ok(())
+    DocumentFormat::from_path(path).map(|_| ())
 }
 
 fn staged_hwp_save_path(target_path: &Path) -> Result<PathBuf, String> {
@@ -527,12 +522,11 @@ mod tests {
     }
 
     #[test]
-    fn ensure_hwp_target_path_rejects_invalid_parent_and_hwpx() {
+    fn ensure_hwp_target_path_accepts_hwpx_and_rejects_invalid_parent() {
         let dir = tempfile::tempdir().unwrap();
-        let missing_parent = dir.path().join("missing").join("saved.hwp");
-
-        assert!(ensure_hwp_target_path(&missing_parent).is_err());
-        assert!(ensure_hwp_target_path(&dir.path().join("saved.hwpx")).is_err());
+        assert!(ensure_hwp_target_path(&dir.path().join("saved.hwpx")).is_ok());
+        assert!(ensure_hwp_target_path(&dir.path().join("saved.txt")).is_err());
+        assert!(ensure_hwp_target_path(&dir.path().join("missing/saved.hwp")).is_err());
     }
 
     #[test]

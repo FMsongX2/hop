@@ -549,8 +549,9 @@ function setupEventListeners(): void {
   // 머리말/꼬리말 편집 모드 시 도구상자 전환 + 본문 dimming
   const hfGroup = document.querySelector('.tb-headerfooter-group') as HTMLElement | null;
   const hfLabel = hfGroup?.querySelector('.tb-hf-label') as HTMLElement | null;
+  const noteGroup = document.querySelector('.tb-note-group') as HTMLElement | null;
   const defaultTbGroups = document.querySelectorAll(
-    '#icon-toolbar .tb-scroll-track > .tb-group:not(.tb-headerfooter-group):not(.tb-rotate-group), #icon-toolbar .tb-scroll-track > .tb-sep',
+    '#icon-toolbar .tb-scroll-track > .tb-group:not(.tb-headerfooter-group):not(.tb-note-group):not(.tb-rotate-group), #icon-toolbar .tb-scroll-track > .tb-sep',
   );
   const scrollContainer = document.getElementById('scroll-container');
 
@@ -567,6 +568,16 @@ function setupEventListeners(): void {
     });
     // 서식 도구 모음은 머리말/꼬리말 편집 시에도 유지 (문단/글자 모양 설정 필요)
     scrollContainer?.classList.toggle('hf-editing', isActive);
+  });
+
+  // 각주/미주 편집 모드: 주석 도구상자로 전환
+  eventBus.on('footnoteModeChanged', (active) => {
+    const isActive = Boolean(active);
+    iconToolbarScroller?.resetToStart();
+    if (noteGroup) noteGroup.hidden = !isActive;
+    defaultTbGroups.forEach((el) => {
+      (el as HTMLElement).hidden = isActive;
+    });
   });
 }
 

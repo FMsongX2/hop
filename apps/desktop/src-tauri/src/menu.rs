@@ -24,9 +24,8 @@ pub fn install(app: &mut App) -> tauri::Result<()> {
     let save_as = MenuItemBuilder::with_id("file:save-as", "Save As...")
         .accelerator("CmdOrCtrl+Shift+S")
         .build(app)?;
-    let export_pdf = MenuItemBuilder::with_id("file:export-pdf", "Export PDF...")
-        .accelerator("CmdOrCtrl+E")
-        .build(app)?;
+    // Cmd+E는 편집기(rhwp)의 '지우기' 단축키라 웹뷰가 먼저 소비한다. 메뉴에 가속기를 달면 동작하지 않는 표시만 남는다.
+    let export_pdf = MenuItemBuilder::with_id("file:export-pdf", "Export PDF...").build(app)?;
     let print = MenuItemBuilder::with_id("file:print", "Print...")
         .accelerator("CmdOrCtrl+P")
         .build(app)?;

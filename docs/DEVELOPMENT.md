@@ -64,7 +64,7 @@ upstream이 업데이트되면 submodule pointer를 올리고, HOP overlay에서
 
 public beta 전까지는 아래 항목이 더 필요합니다.
 
-* HWPX 저장은 아직 막아 두었습니다. HWPX 열기는 가능하지만, 안전한 HWPX serializer가 준비되기 전까지 저장은 지원하지 않습니다.
+* HWPX 저장은 rhwp 0.8.6의 HWPX serializer를 사용합니다. 저장 형식은 확장자로 정하고, 네이티브가 staging 바이트를 재파싱한 뒤 원본을 교체합니다.
 * autosave/recovery는 아직 없습니다.
 * 외부 파일 변경은 저장 전에 감지하고 충돌 확인을 거칩니다.
 * 큰 문서에서는 현재 WASM mirror를 거치는 구간이 있어 native-authoritative 구조로 더 개선해야 합니다.

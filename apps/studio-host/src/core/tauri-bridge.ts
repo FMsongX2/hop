@@ -117,18 +117,23 @@ export class TauriBridge extends WasmBridge implements DesktopBridgeApi {
   private revision = 0;
   private dirty = false;
 
+  /** 한글처럼 저장 여부를 먼저 묻고 나서 파일 선택 대화상자를 연다. */
   async openDocumentFromDialog(): Promise<DesktopLoadPayload | null> {
+    if (!(await this.confirmReadyForDocumentReplacement())) return null;
     const { open } = await import('@tauri-apps/plugin-dialog');
     const selected = await open({
       multiple: false,
       filters: [{ name: 'HWP/HWPX 문서', extensions: ['hwp', 'hwpx'] }],
     });
     if (!selected || Array.isArray(selected)) return null;
-    return this.openDocumentByPath(selected);
+    return this.openDocumentByPath(selected, { skipUnsavedGuard: true });
   }
 
-  async openDocumentByPath(path: string): Promise<DesktopLoadPayload | null> {
-    if (!(await this.confirmReadyForDocumentReplacement())) return null;
+  async openDocumentByPath(
+    path: string,
+    options: { skipUnsavedGuard?: boolean } = {},
+  ): Promise<DesktopLoadPayload | null> {
+    if (!options.skipUnsavedGuard && !(await this.confirmReadyForDocumentReplacement())) return null;
 
     await this.invoke<void>('prepare_document_open', { path });
     const { bytes, sourceFingerprint } = await this.readFileForOpen(path);
@@ -188,27 +193,27 @@ export class TauriBridge extends WasmBridge implements DesktopBridgeApi {
     return this.sourceFormat;
   }
 
+  /** 원본 형식(HWP/HWPX) 그대로 같은 경로에 저장한다. 경로가 없으면 다른 이름으로 저장으로 넘긴다. */
   async saveDocumentFromCommand(): Promise<DesktopSaveResult | null> {
     const docId = this.ensureDocumentLoaded();
     if (!this.sourcePath) {
       return this.saveDocumentAsFromCommand();
     }
-    if (this.sourceFormat === 'hwpx') {
-      throw new Error('HWPX 원본 저장은 아직 안전하게 지원하지 않습니다. 다른 이름으로 저장에서 HWP 파일로 저장하세요.');
-    }
-    return this.saveHwpThroughStaging(docId, null);
+    return this.saveDocumentThroughStaging(docId, null, this.sourceFormat);
   }
 
+  /** 저장 대화상자에서 고른 확장자(.hwp/.hwpx)가 저장 형식을 정한다. 확장자가 없으면 원본 형식을 따른다. */
   async saveDocumentAsFromCommand(): Promise<DesktopSaveResult | null> {
     const docId = this.ensureDocumentLoaded();
-    const targetPath = await this.selectSavePath(this.suggestedHwpName(), 'HWP 문서', ['hwp']);
-    if (!targetPath) return null;
-    return this.saveHwpThroughStaging(docId, this.withExtension(targetPath, 'hwp'));
+    const selected = await this.selectSavePath(this.suggestedDocumentName(), this.documentSaveFilters());
+    if (!selected) return null;
+    const targetPath = this.withDocumentExtension(selected);
+    return this.saveDocumentThroughStaging(docId, targetPath, this.documentFormatOfPath(targetPath));
   }
 
   async exportPdfFromCommand(): Promise<string | null> {
     this.ensureDocumentLoaded();
-    const targetPath = await this.selectSavePath(this.suggestedPdfName(), 'PDF 문서', ['pdf']);
+    const targetPath = await this.selectSavePath(this.suggestedPdfName(), [{ name: 'PDF 문서', extensions: ['pdf'] }]);
     if (!targetPath) return null;
     const finalPath = this.withExtension(targetPath, 'pdf');
     const stagedPath = await this.invoke<string>('prepare_staged_hwp_pdf_export', {
@@ -366,19 +371,24 @@ export class TauriBridge extends WasmBridge implements DesktopBridgeApi {
 
   private async selectSavePath(
     defaultPath: string,
-    filterName: string,
-    extensions: string[],
+    filters: { name: string; extensions: string[] }[],
   ): Promise<string | null> {
     const { save } = await import('@tauri-apps/plugin-dialog');
-    return save({
-      defaultPath,
-      filters: [{ name: filterName, extensions }],
-    });
+    return save({ defaultPath, filters });
   }
 
-  private async saveHwpThroughStaging(
+  /** 원본 형식을 첫 필터로 두어 저장 대화상자가 같은 형식을 기본으로 고르게 한다. */
+  private documentSaveFilters(): { name: string; extensions: string[] }[] {
+    const hwp = { name: 'HWP 문서', extensions: ['hwp'] };
+    const hwpx = { name: 'HWPX 문서', extensions: ['hwpx'] };
+    return this.sourceFormat === 'hwpx' ? [hwpx, hwp] : [hwp, hwpx];
+  }
+
+  /** staging 파일에 형식에 맞는 바이트를 쓰고, 네이티브가 재파싱 검증 후 원자적으로 교체한다. */
+  private async saveDocumentThroughStaging(
     docId: string,
     targetPath: string | null,
+    format: DocumentFormat,
   ): Promise<DesktopSaveResult | null> {
     const finalPath = targetPath ?? this.sourcePath;
     if (!finalPath) throw new Error('새 문서는 저장 경로가 필요합니다');
@@ -388,7 +398,7 @@ export class TauriBridge extends WasmBridge implements DesktopBridgeApi {
 
     const stagedPath = await this.invoke<string>('prepare_staged_hwp_save', { targetPath: finalPath });
     try {
-      await this.writeCurrentHwpToPath(stagedPath);
+      await this.writeCurrentDocumentToPath(stagedPath, format);
       const result = await this.invoke<DesktopSaveResult>('commit_staged_hwp_save', {
         docId,
         stagedPath,
@@ -457,9 +467,6 @@ export class TauriBridge extends WasmBridge implements DesktopBridgeApi {
   }
 
   private async saveCurrentDocumentForSafety(): Promise<DesktopSaveResult | null> {
-    if (this.sourceFormat === 'hwpx') {
-      return this.saveDocumentAsFromCommand();
-    }
     return this.saveDocumentFromCommand();
   }
 
@@ -494,13 +501,27 @@ export class TauriBridge extends WasmBridge implements DesktopBridgeApi {
     });
   }
 
+  /** PDF 내보내기 staging은 항상 HWP 바이트를 쓴다. */
   private async writeCurrentHwpToPath(path: string): Promise<void> {
-    await writeFileInChunks(path, super.exportHwp());
+    await this.writeCurrentDocumentToPath(path, 'hwp');
+  }
+
+  private async writeCurrentDocumentToPath(path: string, format: DocumentFormat): Promise<void> {
+    await writeFileInChunks(path, format === 'hwpx' ? super.exportHwpx() : super.exportHwp());
   }
 
   private withExtension(path: string, extension: string): string {
     const escaped = extension.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     return new RegExp(`\\.${escaped}$`, 'i').test(path) ? path : `${path}.${extension}`;
+  }
+
+  /** .hwp/.hwpx 확장자는 그대로 두고, 없으면 원본 형식 확장자를 붙인다. */
+  private withDocumentExtension(path: string): string {
+    return /\.(hwp|hwpx)$/i.test(path) ? path : `${path}.${this.sourceFormat}`;
+  }
+
+  private documentFormatOfPath(path: string): DocumentFormat {
+    return /\.hwpx$/i.test(path) ? 'hwpx' : 'hwp';
   }
 
   private async readFileForOpen(path: string): Promise<{
@@ -571,9 +592,9 @@ export class TauriBridge extends WasmBridge implements DesktopBridgeApi {
     this.updateDocumentTitle();
   }
 
-  private suggestedHwpName(): string {
+  private suggestedDocumentName(): string {
     const name = this.fileName.replace(/\.(hwp|hwpx)$/i, '') || 'document';
-    return `${name}.hwp`;
+    return `${name}.${this.sourceFormat}`;
   }
 
   private suggestedPdfName(): string {
