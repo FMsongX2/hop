@@ -40,6 +40,15 @@ describe('shortcut-map', () => {
     )).toBe('edit:goto');
   });
 
+  it('lets unmodified letters reach the document instead of the object properties shortcut', () => {
+    installNavigator({ platform: 'MacIntel', userAgent: 'Mac OS X' });
+
+    expect(matchShortcut(keyEvent({ key: 'p', code: 'KeyP' }), defaultShortcuts)).toBeNull();
+    expect(matchShortcut(keyEvent({ key: 'ㅔ', code: 'KeyP' }), defaultShortcuts)).toBeNull();
+    expect(matchShortcut(keyEvent({ key: 'p', metaKey: true }), defaultShortcuts)).toBe('file:print');
+    expect(matchShortcut(keyEvent({ key: 'f6' }), defaultShortcuts)).toBe('format:style-dialog');
+  });
+
   it('does not run unmodified shortcuts while a non-primary system modifier is held', () => {
     installNavigator({ platform: 'Win32', userAgent: 'Windows NT 10.0' });
 
