@@ -8,6 +8,7 @@ use tauri_plugin_updater::{Update, UpdaterExt};
 use crate::state::AppState;
 
 const UPDATE_STATE_EVENT: &str = "hop-update-state";
+#[cfg_attr(debug_assertions, allow(dead_code))]
 const SKIP_UPDATE_CHECK_ENV: &str = "HOP_SKIP_UPDATE_CHECK";
 const SKIP_UPDATE_CHECK_FLAG: &str = "--no-update-check";
 
