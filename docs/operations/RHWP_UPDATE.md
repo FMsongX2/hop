@@ -152,3 +152,7 @@ pnpm upstream:verify
 * 변경된 counterpart를 검토했고 필요한 호환 수정이 HOP-owned 경계 안에 있다.
 * 자동 검증과 필요한 플랫폼 smoke test 결과가 작업 기록에 남아 있다.
 * `third_party/rhwp` 내부는 clean이고 의도하지 않은 생성물이나 임시 파일이 없다.
+
+## 서드파티 고지 갱신
+
+rhwp나 의존성을 갱신하면 `pnpm licenses:generate`로 `THIRD_PARTY_LICENSES.md`를 다시 만든다. 이 파일과 rhwp의 고지 문서는 앱 번들 `Resources/licenses/`에 동봉된다.

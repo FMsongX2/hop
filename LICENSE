@@ -1,6 +1,9 @@
 MIT License
 
-Copyright (c) 2025-2026 Edward Kim
+Copyright (c) 2026 Jin Kim (golbin) and HOP contributors
+
+HOP bundles rhwp (https://github.com/edwardkim/rhwp), Copyright (c) 2025-2026 Edward Kim, under the same MIT terms.
+Third-party notices: THIRD_PARTY_LICENSES.md
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

@@ -125,7 +125,7 @@ pub fn collect_local_font_entries(extra_font_dirs: &[PathBuf]) -> Vec<LocalFontE
         let mut families = BTreeSet::new();
         for (family, _) in &face.families {
             let family = family.trim();
-            if !family.is_empty() {
+            if !family.is_empty() && !is_hidden_font_family(family) {
                 families.insert(family.to_string());
             }
         }
@@ -162,6 +162,11 @@ pub fn collect_local_font_entries(extra_font_dirs: &[PathBuf]) -> Vec<LocalFontE
             .then(left.post_script_name.cmp(&right.post_script_name))
     });
     entries
+}
+
+/// macOS 시스템 UI 전용 폰트(`.SF NS`, `.Apple SD Gothic NeoI` 등)는 이름이 `.`으로 시작하며 문서용으로 노출하지 않는다.
+fn is_hidden_font_family(family: &str) -> bool {
+    family.starts_with('.')
 }
 
 fn source_path(source: &Source) -> Option<String> {
@@ -309,6 +314,14 @@ mod tests {
             families,
             vec!["Malgun Gothic".to_string(), "맑은 고딕".to_string()]
         );
+    }
+
+    #[test]
+    fn hidden_system_ui_font_families_are_excluded() {
+        assert!(is_hidden_font_family(".SF NS"));
+        assert!(is_hidden_font_family(".Apple SD Gothic NeoI"));
+        assert!(!is_hidden_font_family("Apple SD Gothic Neo"));
+        assert!(!is_hidden_font_family("Hiragino Sans"));
     }
 
     #[test]

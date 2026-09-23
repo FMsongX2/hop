@@ -69,4 +69,4 @@ paru -S hop-openhwp-bin
 
 HOP는 [rhwp](https://github.com/edwardkim/rhwp)를 기반으로 합니다. HWP 엔진을 공개해 주신 개발자분께 감사드립니다.
 
-License: MIT
+License: MIT. 서드파티 구성 요소와 폰트 라이선스는 [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md)에 정리했고, 앱 번들의 `Resources/licenses/`에도 들어 있습니다.

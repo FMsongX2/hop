@@ -44,11 +44,17 @@
     ],
     "resources": {
       "../../../third_party/rhwp/ttfs/opensource/NotoSansKR-Regular.ttf": "fonts/pdf/NotoSansKR-Regular.ttf",
-      "../../../third_party/rhwp/ttfs/opensource/NotoSansKR-OFL.txt": "fonts/pdf/NotoSansKR-OFL.txt"
+      "../../../third_party/rhwp/ttfs/opensource/NotoSansKR-OFL.txt": "fonts/pdf/NotoSansKR-OFL.txt",
+      "../../../LICENSE": "licenses/LICENSE",
+      "../../../THIRD_PARTY_LICENSES.md": "licenses/THIRD_PARTY_LICENSES.md",
+      "../../../third_party/rhwp/THIRD_PARTY_LICENSES.md": "licenses/rhwp-THIRD_PARTY_LICENSES.md",
+      "../../../third_party/rhwp/LICENSE": "licenses/rhwp-LICENSE"
     },
     "fileAssociations": [
       {
-        "ext": ["hwp"],
+        "ext": [
+          "hwp"
+        ],
         "name": "HWP Document",
         "description": "Hangul Word Processor document",
         "mimeType": "application/x-hwp",
@@ -61,11 +67,15 @@
         ],
         "exportedType": {
           "identifier": "net.golbin.hop.hwp",
-          "conformsTo": ["public.data"]
+          "conformsTo": [
+            "public.data"
+          ]
         }
       },
       {
-        "ext": ["hwpx"],
+        "ext": [
+          "hwpx"
+        ],
         "name": "HWPX Document",
         "description": "Hangul Word Processor XML document",
         "mimeType": "application/vnd.hancom.hwpx",
@@ -78,7 +88,10 @@
         ],
         "exportedType": {
           "identifier": "net.golbin.hop.hwpx",
-          "conformsTo": ["public.data", "public.zip-archive"]
+          "conformsTo": [
+            "public.data",
+            "public.zip-archive"
+          ]
         }
       }
     ],
