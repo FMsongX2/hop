@@ -53,7 +53,7 @@ Arch 계열 배포판용 native 패키지는 아직 제공하지 않는다. `deb
 자동 업데이트는 GitHub Release의 `latest.json`을 사용한다.
 
 ```text
-https://github.com/golbin/hop/releases/latest/download/latest.json
+https://github.com/FMsongX2/hop/releases/latest/download/latest.json
 ```
 
 릴리즈 잡은 Tauri updater용 압축 bundle과 `.sig` 파일을 `HOP-updater-*` 또는 설치 파일 이름으로 함께 올리고, `latest.json` 안의 다운로드 URL은 해당 릴리즈 태그의 asset을 가리키게 만든다. manifest에는 `darwin-aarch64-app`, `windows-x86_64-msi`, `linux-x86_64-appimage`, `linux-aarch64-deb`처럼 Tauri가 먼저 찾는 installer-specific key와 fallback key를 함께 넣는다. Linux installer-specific key는 각 패키지 형식을 그대로 가리켜야 하며, generic `linux-x86_64`와 `linux-aarch64` fallback은 Linux 기본 다운로드 정책에 맞춰 `.deb`를 가리킨다. AppImage 설치본을 updater로 `.deb`에 자동 전환하는 흐름은 보장하지 않는다. 앱은 시작 시 이 manifest를 확인한다. 업데이트가 있으면 다운로드와 설치를 수행하고, Rust 쪽에서 아직 dirty 문서 세션이 없을 때만 재시작한다.
@@ -152,6 +152,13 @@ macOS release build는 다음 조건을 만족하지 않으면 실패한다.
 * `APPLE_CERTIFICATE`가 설정되어 있어야 한다.
 * `APPLE_CERTIFICATE_PASSWORD`가 설정되어 있어야 한다.
 * App Store Connect API key 방식 또는 Apple ID 방식 중 하나의 notarization credential 묶음이 모두 설정되어 있어야 한다.
+
+## 서명 없는 macOS 릴리즈 (포크)
+
+Apple 인증서가 없는 포크에서는 `allow_unsigned_macos`를 켜고 실행한다. 이 경우 macOS `.dmg`는 서명·공증 없이 올라가며,
+사용자는 `xattr -dr com.apple.quarantine`으로 격리 속성을 지워야 실행할 수 있다. README에 그 안내를 유지한다.
+`TAURI_SIGNING_PRIVATE_KEY`는 여전히 필수다. 포크는 자체 키를 쓰고, `tauri.conf.json`의 updater `pubkey`와 `endpoints`를
+포크 저장소(`FMsongX2/hop`)로 맞춰 원저장소 릴리즈가 업데이트로 잡히지 않게 한다.
 
 ## Windows 사이닝
 

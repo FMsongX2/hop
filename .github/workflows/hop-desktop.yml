@@ -43,6 +43,11 @@ on:
         required: false
         default: false
         type: boolean
+      allow_unsigned_macos:
+        description: Allow macOS release builds without Apple signing/notarization credentials (fork builds). Users must clear quarantine manually.
+        required: false
+        default: false
+        type: boolean
       create_release:
         description: Create or update a GitHub draft release
         required: false
@@ -421,7 +426,7 @@ jobs:
 
       - name: Validate macOS signing secrets
         id: macos-signing
-        if: runner.os == 'macOS' && (needs.prepare.outputs.create_release == 'true' || inputs.notarize_macos == true)
+        if: runner.os == 'macOS' && (needs.prepare.outputs.create_release == 'true' || inputs.notarize_macos == true) && inputs.allow_unsigned_macos != true
         shell: bash
         run: |
           set -euo pipefail

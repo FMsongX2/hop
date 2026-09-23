@@ -24,22 +24,24 @@ HOP는 HWP/HWPX 문서를 보고 편집할 수 있는 오픈소스 macOS, Window
 
 최신 릴리즈는 아래 링크에서 받을 수 있습니다.
 
-* [macOS Apple Silicon (.dmg)](https://github.com/golbin/hop/releases/latest/download/HOP-macos-arm64.dmg)
-* [macOS Intel (.dmg)](https://github.com/golbin/hop/releases/latest/download/HOP-macos-x64.dmg)
-* [Windows x64 (.msi)](https://github.com/golbin/hop/releases/latest/download/HOP-windows-x64.msi)
-* [Linux x64 (.deb, Ubuntu/Debian 계열 권장)](https://github.com/golbin/hop/releases/latest/download/HOP-linux-x64.deb)
-* [Linux x64 (.rpm, Fedora/openSUSE 계열)](https://github.com/golbin/hop/releases/latest/download/HOP-linux-x64.rpm)
-* [Linux x64 (AppImage, portable)](https://github.com/golbin/hop/releases/latest/download/HOP-linux-x64.AppImage)
-* [Linux arm64 (.deb, Ubuntu/Debian 계열)](https://github.com/golbin/hop/releases/latest/download/HOP-linux-arm64.deb)
+* [macOS Apple Silicon (.dmg)](https://github.com/FMsongX2/hop/releases/latest/download/HOP-macos-arm64.dmg)
+* [macOS Intel (.dmg)](https://github.com/FMsongX2/hop/releases/latest/download/HOP-macos-x64.dmg)
+* [Windows x64 (.msi)](https://github.com/FMsongX2/hop/releases/latest/download/HOP-windows-x64.msi)
+* [Linux x64 (.deb, Ubuntu/Debian 계열 권장)](https://github.com/FMsongX2/hop/releases/latest/download/HOP-linux-x64.deb)
+* [Linux x64 (.rpm, Fedora/openSUSE 계열)](https://github.com/FMsongX2/hop/releases/latest/download/HOP-linux-x64.rpm)
+* [Linux x64 (AppImage, portable)](https://github.com/FMsongX2/hop/releases/latest/download/HOP-linux-x64.AppImage)
+* [Linux arm64 (.deb, Ubuntu/Debian 계열)](https://github.com/FMsongX2/hop/releases/latest/download/HOP-linux-arm64.deb)
 * [Arch Linux AUR (`hop-openhwp-bin`)](https://aur.archlinux.org/packages/hop-openhwp-bin)
 
-macOS 빌드는 signed/notarized `.dmg`입니다. Homebrew를 통해서 설치할 수도 있습니다. Homebrew 패키지는 [daeho-ro](https://github.com/daeho-ro)님이 올려주셨습니다.
+이 저장소(FMsongX2/hop)의 macOS 빌드는 Apple 서명·공증이 없습니다. 처음 열 때 "확인되지 않은 개발자" 경고가 나오면 아래처럼 격리 속성을 지운 뒤 실행하세요.
 
 ```sh
-brew install hop
+xattr -dr com.apple.quarantine /Applications/HOP.app
 ```
 
-전체 릴리즈는 [GitHub Releases](https://github.com/golbin/hop/releases)에서 확인할 수 있습니다.
+원저장소 [golbin/hop](https://github.com/golbin/hop)은 signed/notarized `.dmg`와 Homebrew(`brew install hop`, [daeho-ro](https://github.com/daeho-ro)님 제공)를 배포합니다.
+
+전체 릴리즈는 [GitHub Releases](https://github.com/FMsongX2/hop/releases)에서 확인할 수 있습니다.
 
 ## 설치 유의사항
 
